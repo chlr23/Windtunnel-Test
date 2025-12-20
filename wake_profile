@@ -1,0 +1,80 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+v_inf = 20.233989156212825
+
+# read raw data
+
+with open("raw_airfoil_20mps.txt") as data:
+    lines = data.readlines()
+    lines = lines[2:]
+    alpha_list = []
+    density = []
+    p_t_list = []
+    p_st_rake_list = []
+    for line in lines:
+        datarun = line.split("\t")
+        a = float(datarun[2])  # angle of attack
+        den = float(datarun[7])  # density
+        p = []
+        p_st_rake = []
+        for i in range(57, 104):
+            p.append(float(datarun[i]))
+        for j in range(105,117):
+            p_st_rake.append(float(datarun[j]))
+        p_st_rake_list.append(p_st_rake)
+        p_t_list.append(p)
+        alpha_list.append(a)
+        density.append(den)
+
+
+alpha = np.array(alpha_list)
+rho = np.array(density)
+pressure = np.array(p_t_list)
+p_st = np.array(p_st_rake_list)
+
+
+airfoilTapCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols='F')
+tot_location = np.array(airfoilTapCoords.iloc[1:, 0].dropna().tolist())  # total wake rake probe locations
+airfoilTapCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols='I')
+stat_location = np.array(airfoilTapCoords.iloc[1:, 0].dropna().tolist())  # static wake rake probe locations
+
+# Wake profile computation
+
+# This is the only method I've tried so far that gives sensical results 
+def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
+    u_wake = np.sqrt(np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure)*2 /rho)
+    return u_wake
+
+#Plotting
+
+y = np.arange(0, 220, 0.1)
+fig, ax = plt.subplots(figsize=(10, 8))
+colors = plt.cm.viridis(np.linspace(0, 1, 56))
+
+unique_labels = set()
+alphas = [0,15,30,45]
+
+for a in alphas:
+    u_val = np.array([wake_profile(rho, stat_location, p_st[a], tot_location, pressure[a], i) for i in y])
+    
+    current_label = f'α = {alpha[a]:.1f}°'
+
+    line_list = ax.plot(y, u_val/v_inf, color=colors[a]) 
+    
+    if current_label not in unique_labels:
+        line_list[0].set_label(current_label)
+        unique_labels.add(current_label)
+    else:
+        line_list[0].set_label("_nolegend_")
+
+ax.set_title('Wake Profile Analysis')
+ax.set_xlabel('Location [mm]')
+ax.set_ylabel(r'$U/U_\infty$')
+ax.grid(True, linestyle=':', alpha=0.6)
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title="Angle of Attack")
+
+plt.tight_layout(rect=[0, 0, 0.85, 1])
+
+plt.show()
