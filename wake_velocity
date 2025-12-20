@@ -1,0 +1,81 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# from 'Ambient conditons.py':
+
+velFreeStream = 20.233989156212825
+presStat = 99733.87885363573
+
+# read raw data
+
+with open("raw_airfoil_20mps.txt") as data:
+    lines = data.readlines()
+    lines = lines[2:]
+    alpha_list = []
+    density = []
+    p_bar_list = []
+    p_t_list = []
+    p_stat_list = []
+    for line in lines:
+        datarun = line.split("\t")
+        a = float(datarun[2])  # angle of attack
+        pb = 100*float(datarun[4])  # barometric pressure
+        den = float(datarun[7])  # density
+        pst = float(datarun[104])  #  free stream static pressure
+        p = []
+        for i in range(57, 104):
+            p.append(float(datarun[i]))
+        p_t_list.append(p)
+        alpha_list.append(a)
+        density.append(den)
+        p_bar_list.append(pb)
+        p_stat_list.append(pst)
+
+
+alpha = np.array(alpha_list)
+rho = np.array(density)
+p_bar = np.array(p_bar_list)
+pressure = np.array(p_t_list)
+p_inf = np.array(p_stat_list)
+
+p_bar= np.tile(p_bar, (47,1))
+p_bar = p_bar.T
+
+airfoilTapCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols='F')
+location = np.array(airfoilTapCoords.iloc[1:, 0].dropna().tolist())  # total wake rake probe locations
+
+# Calculate absolute pressures from reference pressures and measurements
+
+total_pressure_rake = p_bar + pressure
+
+free_stream_static_pressure = presStat + p_inf
+
+free_stream_static_pressure= np.tile(free_stream_static_pressure, (47,1))
+free_stream_static_pressure = free_stream_static_pressure.T
+
+rho= np.tile(rho, (47,1))
+rho = rho.T
+
+#  Calculate wake velocity using Bernoulli
+
+u_wake = np.sqrt(2/rho * (total_pressure_rake-free_stream_static_pressure))
+
+# Plotting
+
+#plt.plot(location, u_wake[0])
+#plt.plot(location, u_wake[4])
+#plt.plot(location, u_wake[40])
+
+#plt.title('Wake rake velocity profile')
+#plt.xlabel('location [mm]')
+#plt.ylabel('velocity [m/s]')
+
+#plt.show()
+
+
+
+
+
+
+
