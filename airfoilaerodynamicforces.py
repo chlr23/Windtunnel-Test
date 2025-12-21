@@ -30,8 +30,8 @@ for item in yCoordsPercent:
 
 wakeRakeCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols=[5, 8])
 
-WRTotalCoordsmm = wakeRakeCoords.iloc[:, 0].tolist()[1:]
-WRStaticCoordsmm = wakeRakeCoords.iloc[:, 1].tolist()[1:]
+WRTotalCoordsmm = wakeRakeCoords.iloc[:, 0].tolist()[1:48]
+WRStaticCoordsmm = wakeRakeCoords.iloc[:, 1].tolist()[1:13]
 
 WRTotalCoords = []
 for item in WRTotalCoordsmm:
@@ -42,7 +42,7 @@ for item in WRStaticCoordsmm:
     WRStaticCoords.append(item / 1000)
 
 WRStaticCoordsNP = np.array(WRStaticCoords)
-WRTotalCoordsNP = np.array(WRStaticCoords)
+WRTotalCoordsNP = np.array(WRTotalCoords)
 
 
 def calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower):
@@ -52,9 +52,9 @@ def calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower):
 
     forceDown = 0
     for j in range(len(xCoordsLower)-1):
-        forceDown = forceDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[i])
+        forceDown = forceDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[j])
 
-    normalForce = forceUp - forceDown
+    normalForce = -forceUp + forceDown
     return normalForce
 
 def calcTangentForce(yCoordsFront, yCoordsBack, pFront, pBack):
@@ -76,9 +76,9 @@ def calcMoment(xCoordsUpper, xCoordsLower, pUpper, pLower):
 
     momentDown = 0
     for j in range(len(xCoordsLower)-1):
-        momentDown = momentDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[i]) * (xCoordsLower[j+1] + xCoordsLower[i]) / 2
+        momentDown = momentDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[j]) * (xCoordsLower[j+1] + xCoordsLower[j]) / 2
 
-    moment = -momentUp + momentDown
+    moment = momentUp - momentDown
     return moment
 
 def calcLift(normalForce, tangentForce, aoa):
@@ -88,13 +88,13 @@ def calcDrag(normalForce, tangentForce, aoa):
     return tangentForce * np.cos(aoa) + normalForce * np.sin(aoa)
 
 def calcCP(liftForce, moment):
-    return moment / liftForce
+    return -moment / liftForce
 
 #def calcDragWakeRake(WKTotalCoords, WKStaticCoords, WKpTotal, WKpStatic, vFS, rho):
 
 #calculating normal forces
 xCoordsUpper = xCoords[0:25]
-xCoordsLower = xCoords[25:49]
+xCoordsLower = xCoords[26:49]
 
 yCoordsFront1 = yCoords[25:36]
 yCoordsFront2 = yCoords[0:12]
@@ -114,7 +114,7 @@ cps = []
 
 for datarun in dataruns:
     pUpper = datarun[8:33]
-    pLower = datarun[33:57]
+    pLower = datarun[34:57]
 
     pFront1 = datarun[33:44]
     pFront1 = pFront1[::-1]
@@ -144,10 +144,13 @@ for datarun in dataruns:
     cps.append(cp)
 
 plt.plot(aoas, liftForces)
-
-#plt.plot(dragForces, liftForces)
 plt.plot(aoas, moments)
-#plt.plot(aoas, cps)
+plt.show()
+
+plt.plot(dragForces, liftForces)
+plt.show()
+
+plt.plot(aoas, cps)
 plt.show()
 
 #drag from wake rake measurements
@@ -155,8 +158,6 @@ plt.show()
 def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
     u_wake = np.sqrt((np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure))*2 /rho)
     return u_wake
-
-def calcPressureWakeProfile
 
 uFS = 20.233989156212825
 dragForcesWR = []
@@ -167,5 +168,19 @@ for datarun in dataruns:
     pFS = datarun[104]
     pStatic = np.array(datarun[105:117])
     pTotal = np.array(datarun[57:104])
-    for location in WRTotalCoords:
-        u_wake = wake_profile(rho, WRStaticCoordsNP, pStatic, WRTotalCoordsNP, pTotal, location)
+
+    dragForceWR = 0
+    for i in range(len(WRTotalCoords)-1):
+        u_wake1 = wake_profile(rho, WRStaticCoordsNP, pStatic, WRTotalCoordsNP, pTotal, WRTotalCoords[i])
+        u_wake2 = wake_profile(rho, WRStaticCoordsNP, pStatic, WRTotalCoordsNP, pTotal, WRTotalCoords[i+1])
+        dragForceWR = dragForceWR + ((uFS - u_wake2) * u_wake2 + (uFS - u_wake1) * u_wake1) / 2 * (WRTotalCoords[i+1] - WRTotalCoords[i]) * rho
+        deltap1 = pFS - pTotal[i]
+        deltap2 = pFS - pTotal[i+1]
+        dragForceWR = dragForceWR + (deltap2 + deltap1) / 2 * (WRTotalCoords[i+1] - WRTotalCoords[i])
+
+    dragForcesWR.append(dragForceWR)
+
+plt.plot(aoas, dragForces)
+plt.plot(aoas, dragForcesWR)
+
+plt.show()
