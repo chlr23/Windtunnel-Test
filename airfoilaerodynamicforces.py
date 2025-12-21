@@ -30,19 +30,19 @@ for item in yCoordsPercent:
 
 wakeRakeCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols=[5, 8])
 
-WKTotalCoordsmm = wakeRakeCoords.iloc[:, 0].tolist()[1:]
-WKStaticCoordsmm = wakeRakeCoords.iloc[:, 1].tolist()[1:]
+WRTotalCoordsmm = wakeRakeCoords.iloc[:, 0].tolist()[1:]
+WRStaticCoordsmm = wakeRakeCoords.iloc[:, 1].tolist()[1:]
 
-WKTotalCoords = []
-for item in WKTotalCoordsmm:
-    WKTotalCoords.append(item / 1000)
+WRTotalCoords = []
+for item in WRTotalCoordsmm:
+    WRTotalCoords.append(item / 1000)
 
-WKStaticCoords = []
-for item in WKStaticCoordsmm:
-    WKStaticCoords.append(item / 1000)
+WRStaticCoords = []
+for item in WRStaticCoordsmm:
+    WRStaticCoords.append(item / 1000)
 
-WKStaticCoords = np.array(WKStaticCoords)
-WKTotalCoords = np.array(WKStaticCoords)
+WRStaticCoordsNP = np.array(WRStaticCoords)
+WRTotalCoordsNP = np.array(WRStaticCoords)
 
 
 def calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower):
@@ -159,6 +159,7 @@ def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
 def calcPressureWakeProfile
 
 uFS = 20.233989156212825
+dragForcesWR = []
 
 for datarun in dataruns:
     aoa = datarun[2]
@@ -166,6 +167,5 @@ for datarun in dataruns:
     pFS = datarun[104]
     pStatic = np.array(datarun[105:117])
     pTotal = np.array(datarun[57:104])
-    y = np.arange(0, 220, 0.1)
-    
-
+    for location in WRTotalCoords:
+        u_wake = wake_profile(rho, WRStaticCoordsNP, pStatic, WRTotalCoordsNP, pTotal, location)
