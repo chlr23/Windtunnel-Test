@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 with open("raw_airfoil_20mps.txt") as data:
     lines = data.readlines()
@@ -15,11 +17,33 @@ with open("raw_airfoil_20mps.txt") as data:
 
 airfoilTapCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols=[1, 2])
 
-xCoords = airfoilTapCoords.iloc[:, 0].tolist()[1:]
-yCoords = airfoilTapCoords.iloc[:, 1].tolist()[1:]
+xCoordsPercent = airfoilTapCoords.iloc[:, 0].tolist()[1:]
+yCoordsPercent = airfoilTapCoords.iloc[:, 1].tolist()[1:]
 
-xCoords = xCoords / 100 * 0.16 #turn coordinates from percent to location in m
-yCoords = yCoords / 100 * 0.16 
+xCoords = []
+for item in xCoordsPercent:
+    xCoords.append(item / 100 * 0.16)
+
+yCoords = []
+for item in yCoordsPercent:
+    yCoords.append(item / 100 * 0.16)
+
+wakeRakeCoords = pd.read_excel("SLTpracticalcoordinates2.xlsx", usecols=[5, 8])
+
+WKTotalCoordsmm = wakeRakeCoords.iloc[:, 0].tolist()[1:]
+WKStaticCoordsmm = wakeRakeCoords.iloc[:, 1].tolist()[1:]
+
+WKTotalCoords = []
+for item in WKTotalCoordsmm:
+    WKTotalCoords.append(item / 1000)
+
+WKStaticCoords = []
+for item in WKStaticCoordsmm:
+    WKStaticCoords.append(item / 1000)
+
+WKStaticCoords = np.array(WKStaticCoords)
+WKTotalCoords = np.array(WKStaticCoords)
+
 
 def calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower):
     forceUp = 0
@@ -30,5 +54,118 @@ def calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower):
     for j in range(len(xCoordsLower)-1):
         forceDown = forceDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[i])
 
-    normalForce = -forceUp + forceDown
+    normalForce = forceUp - forceDown
     return normalForce
+
+def calcTangentForce(yCoordsFront, yCoordsBack, pFront, pBack):
+    forceBack = 0
+    for i in range(len(yCoordsFront)-1):
+        forceBack = forceBack + (pFront[i] + pFront[i+1]) / 2 * (yCoordsFront[i+1] - yCoordsFront[i])
+
+    forceForward = 0
+    for j in range(len(yCoordsBack)-1):
+        forceForward = forceForward + (pBack[j] + pBack[j+1]) / 2 * (yCoordsBack[j+1] - yCoordsBack[j])
+
+    tangentForce = forceBack - forceForward
+    return tangentForce
+
+def calcMoment(xCoordsUpper, xCoordsLower, pUpper, pLower):
+    momentUp = 0
+    for i in range(len(xCoordsUpper)-1):
+        momentUp = momentUp + (pUpper[i] + pUpper[i+1]) / 2 * (xCoordsUpper[i+1] - xCoordsUpper[i]) * (xCoordsUpper[i+1] + xCoordsUpper[i]) / 2
+
+    momentDown = 0
+    for j in range(len(xCoordsLower)-1):
+        momentDown = momentDown + (pLower[j] + pLower[j+1]) / 2 * (xCoordsLower[j+1] - xCoordsLower[i]) * (xCoordsLower[j+1] + xCoordsLower[i]) / 2
+
+    moment = -momentUp + momentDown
+    return moment
+
+def calcLift(normalForce, tangentForce, aoa):
+    return normalForce * np.cos(aoa) - tangentForce * np.sin(aoa)
+
+def calcDrag(normalForce, tangentForce, aoa):
+    return tangentForce * np.cos(aoa) + normalForce * np.sin(aoa)
+
+def calcCP(liftForce, moment):
+    return moment / liftForce
+
+#def calcDragWakeRake(WKTotalCoords, WKStaticCoords, WKpTotal, WKpStatic, vFS, rho):
+
+#calculating normal forces
+xCoordsUpper = xCoords[0:25]
+xCoordsLower = xCoords[25:49]
+
+yCoordsFront1 = yCoords[25:36]
+yCoordsFront2 = yCoords[0:12]
+yCoordsFront1 = yCoordsFront1[::-1]
+yCoordsFront = yCoordsFront1 + yCoordsFront2
+
+yCoordsBack1 = yCoords[36:49]
+yCoordsBack2 = yCoords[12:25]
+yCoordsBack2 = yCoordsBack2[::-1]
+yCoordsBack = yCoordsBack1 + yCoordsBack2
+
+liftForces = []
+dragForces =[]
+moments = []
+aoas = []
+cps = []
+
+for datarun in dataruns:
+    pUpper = datarun[8:33]
+    pLower = datarun[33:57]
+
+    pFront1 = datarun[33:44]
+    pFront1 = pFront1[::-1]
+    pFront2 = datarun[8:20]
+    pFront = pFront1 + pFront2
+
+    pBack1 = datarun[44:57]
+    pBack2 = datarun[20:33]
+    pBack2 = pBack2[::-1]
+    pBack = pBack1 + pBack2
+
+    aoa = datarun[2] * np.pi / 180
+    aoas.append(aoa)
+
+    normalForce = calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower)
+    tangentForce = calcTangentForce(yCoordsFront, yCoordsBack, pFront, pBack)
+
+    moment = calcMoment(xCoordsUpper, xCoordsLower, pUpper, pLower)
+    moments.append(moment)
+
+    liftForce = calcLift(normalForce, tangentForce, aoa)
+    dragForce = calcDrag(normalForce, tangentForce, aoa)
+    liftForces.append(liftForce)
+    dragForces.append(dragForce)
+
+    cp = calcCP(liftForce, moment)
+    cps.append(cp)
+
+plt.plot(aoas, liftForces)
+
+#plt.plot(dragForces, liftForces)
+plt.plot(aoas, moments)
+#plt.plot(aoas, cps)
+plt.show()
+
+#drag from wake rake measurements
+
+def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
+    u_wake = np.sqrt((np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure))*2 /rho)
+    return u_wake
+
+def calcPressureWakeProfile
+
+uFS = 20.233989156212825
+
+for datarun in dataruns:
+    aoa = datarun[2]
+    rho = datarun[7]
+    pFS = datarun[104]
+    pStatic = np.array(datarun[105:117])
+    pTotal = np.array(datarun[57:104])
+    y = np.arange(0, 220, 0.1)
+    
+
