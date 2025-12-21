@@ -44,7 +44,7 @@ stat_location = np.array(airfoilTapCoords.iloc[1:, 0].dropna().tolist())  # stat
 
 # This is the only method I've tried so far that gives sensical results 
 def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
-    u_wake = np.sqrt(np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure)*2 /rho)
+    u_wake = np.sqrt((np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure))*2 /rho)
     return u_wake
 
 #Plotting
