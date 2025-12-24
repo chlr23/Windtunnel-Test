@@ -111,6 +111,7 @@ dragForces =[]
 moments = []
 aoas = []
 cps = []
+aoasdeg = []
 
 for datarun in dataruns:
     pUpper = datarun[8:33]
@@ -127,7 +128,9 @@ for datarun in dataruns:
     pBack = pBack1 + pBack2
 
     aoa = datarun[2] * np.pi / 180
+    aoadeg = datarun[2]
     aoas.append(aoa)
+    aoasdeg.append(aoadeg)
 
     normalForce = calcNormalForce(xCoordsUpper, xCoordsLower, pUpper, pLower)
     tangentForce = calcTangentForce(yCoordsFront, yCoordsBack, pFront, pBack)
@@ -143,14 +146,44 @@ for datarun in dataruns:
     cp = calcCP(liftForce, moment)
     cps.append(cp)
 
-plt.plot(aoas, liftForces)
-plt.plot(aoas, moments)
+plt.plot(aoasdeg, liftForces, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, liftForces, edgecolors='k', color="r", label="Measured Lift Force on Airfoil", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'L $\left(\frac{N}{m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
-plt.plot(dragForces, liftForces)
+plt.plot(aoasdeg, dragForces, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, dragForces, edgecolors='k', color="blue", label="Measured Drag Force on Airfoil", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'D $\left(\frac{N}{m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
-plt.plot(aoas, cps)
+plt.plot(aoasdeg, moments, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, moments, edgecolors='k', color="orange", label="Measured Leading Edge Moment on Airfoil", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'$\text{M}_{LE}\;\left(\frac{Nm}{m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
+
+plt.plot(dragForces, liftForces, 'k-', zorder=1, lw=1)
+plt.scatter(dragForces, liftForces, edgecolors='k', color="blue", label="Measured Airfoil Drag Polar", zorder=2, s=20)
+plt.xlabel(r'D $\left(\frac{N}{m}\right)$')
+plt.ylabel(r'L $\left(\frac{N}{m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
+
+plt.plot(aoasdeg, cps, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, cps, edgecolors='k', color="green", label="Measured Location of Center of Pressure", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'$\text{c}_{p}\;\left(m\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 #drag from wake rake measurements
@@ -180,7 +213,22 @@ for datarun in dataruns:
 
     dragForcesWR.append(dragForceWR)
 
-plt.plot(aoas, dragForces)
-plt.plot(aoas, dragForcesWR)
+plt.plot(aoasdeg, dragForces, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, dragForces, edgecolors='k', color="blue", label="Drag Force on Airfoil from Pressure Taps", zorder=2, s=20)
+plt.plot(aoasdeg, dragForcesWR, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, dragForcesWR, edgecolors='k', marker = "v", color="yellow", label="Drag Force on Airfoil from Wake Rake", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'D $\frac{N}{m}$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
 
+plt.plot(dragForces, liftForces, 'k-', zorder=1, lw=1)
+plt.scatter(dragForces, liftForces, edgecolors='k', color="blue", label="Airfoil Drag Polar from Pressure Taps", zorder=2, s=20)
+plt.plot(dragForcesWR, liftForces, 'k-', zorder=1, lw=1)
+plt.scatter(dragForcesWR, liftForces, edgecolors='k', marker = "v", color="yellow", label="Airfoil Drag Polar from Wake Rake", zorder=2, s=20)
+plt.xlabel(r'D $\frac{N}{m}$')
+plt.ylabel(r'L $\frac{N}{m}$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
