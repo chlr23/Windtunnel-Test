@@ -112,6 +112,7 @@ moments = []
 aoas = []
 cps = []
 aoasdeg = []
+quartermoments = []
 
 for datarun in dataruns:
     pUpper = datarun[8:33]
@@ -142,6 +143,7 @@ for datarun in dataruns:
     dragForce = calcDrag(normalForce, tangentForce, aoa)
     liftForces.append(liftForce)
     dragForces.append(dragForce)
+    quartermoments.append(moment + liftForce * 0.25 * 0.16)
 
     cp = calcCP(liftForce, moment)
     cps.append(cp)
@@ -166,6 +168,14 @@ plt.plot(aoasdeg, moments, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg, moments, edgecolors='k', color="orange", label="Measured Leading Edge Moment on Airfoil", zorder=2, s=20)
 plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
 plt.ylabel(r'$\text{M}_{LE}\;\left(\frac{Nm}{m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
+
+plt.plot(aoasdeg, quartermoments, 'k-', zorder=1, lw=1)
+plt.scatter(aoasdeg, quartermoments, edgecolors='k', color="orange", label="Measured Quarter-chord Moment on Airfoil", zorder=2, s=20)
+plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.ylabel(r'$\text{M}_{c/4}\;\left(\frac{Nm}{m}\right)$')
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
