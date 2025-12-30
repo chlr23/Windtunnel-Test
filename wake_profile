@@ -47,34 +47,20 @@ def wake_profile(rho,static_pos,static_pressure,total_pos,total_pressure,y):
     u_wake = np.sqrt((np.interp(y, total_pos, total_pressure) - np.interp(y,static_pos,static_pressure))*2 /rho)
     return u_wake
 
+y = np.arange(0, 220, 0.1)
+u_0 = np.array([wake_profile(rho[0], stat_location, p_st[0], tot_location, pressure[0], i) for i in y])
+u_10 = np.array([wake_profile(rho[10], stat_location, p_st[10], tot_location, pressure[10], j) for j in y])
+u_20 = np.array([wake_profile(rho[20], stat_location, p_st[20], tot_location, pressure[20], k) for k in y])
+#u_wake = wake_profile(rho,stat_location, p_st, tot_location, pressure, y)
+
 #Plotting
 
-y = np.arange(0, 220, 0.1)
-fig, ax = plt.subplots(figsize=(10, 8))
-colors = plt.cm.viridis(np.linspace(0, 1, 56))
-
-unique_labels = set()
-alphas = [0,15,30,45]
-
-for a in alphas:
-    u_val = np.array([wake_profile(rho, stat_location, p_st[a], tot_location, pressure[a], i) for i in y])
-    
-    current_label = f'α = {alpha[a]:.1f}°'
-
-    line_list = ax.plot(y, u_val/v_inf, color=colors[a]) 
-    
-    if current_label not in unique_labels:
-        line_list[0].set_label(current_label)
-        unique_labels.add(current_label)
-    else:
-        line_list[0].set_label("_nolegend_")
-
-ax.set_title('Wake Profile Analysis')
-ax.set_xlabel('Location [mm]')
-ax.set_ylabel(r'$U/U_\infty$')
-ax.grid(True, linestyle=':', alpha=0.6)
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title="Angle of Attack")
-
-plt.tight_layout(rect=[0, 0, 0.85, 1])
-
+#plt.plot(y, u_0/v_inf, 'k-', zorder=1, lw=1)
+plt.plot(y, u_0/v_inf, 'k-', color="blue", label=rf"Wake profile at $\alpha = {alpha[0]:.1f}^\circ$", zorder=1, lw =1)
+plt.plot(y, u_10/v_inf,'k', color="green", label=rf"Wake profile at $\alpha = {alpha[10]:.1f}^\circ$", zorder=2, lw = 1)
+plt.plot(y, u_20/v_inf,'k', color="red", label=rf"Wake profile at $\alpha = {alpha[20]:.1f}^\circ$", zorder=3, lw = 1)
+plt.xlabel('Location [mm]')
+plt.ylabel(r'$\frac{U_{\mathrm{wake}}}{V_{\infty}}$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
