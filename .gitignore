@@ -1,0 +1,25 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# Large data files
+*.xlsx
+*.txt
+*.csv
+*.pdf
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
