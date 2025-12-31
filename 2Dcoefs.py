@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 # ----------------------------
 # Load data
@@ -181,59 +182,110 @@ for datarun in dataruns:
     cd_values_wake.append(force_to_cd(dragWR, q_inf, c))
 
 # ----------------------------
+# DataFrane
+# ----------------------------
+
+df = pd.DataFrame({
+    "AoA_deg": aoasdeg,
+    "AoA_rad": aoas,
+    "Lift": liftForces,
+    "Drag": dragForces,
+    "Moment_LE": moments,
+    "Moment_c4": quartermoments,
+    "CP": cps,
+    "CL": cl_values,
+    "CD_pressure": cd_values_pressure,
+    "CD_wake": cd_values_wake,
+    "CM_LE": cm_le_values,
+    "CM_c4": cm_quarter_values
+})
+
+def split_sweeps(df):
+    aoa_values = df["AoA_deg"].values
+
+    max_aoa_idx = np.argmax(aoa_values)
+
+    df_upward = df.iloc[:max_aoa_idx + 1].copy()
+
+    df_downward = df.iloc[max_aoa_idx:].copy()
+
+    return df_upward, df_downward
+
+df_upward, df_downward = split_sweeps(df)
+
+df_upward_avg = df_upward.groupby("AoA_deg", as_index=False).mean()
+df_downward_avg = df_downward.groupby("AoA_deg", as_index=False).mean()
+
+df_avg_combined = df.groupby("AoA_deg", as_index=False).mean()
+
+
+# ----------------------------
 # Plotting
 # ----------------------------
-def plot_force_vs_aoa(ydata, ylabel, label, color='r'):
-    plt.plot(aoasdeg, ydata, 'k-', lw=1, zorder=1)
-    plt.scatter(aoasdeg, ydata, color=color, edgecolors='k', label=label, zorder=2, s=20)
-    plt.xlabel(r'$\alpha\;\left(\mathrm{deg}\right)$')
+def plot_force_vs_aoa_split(x_up, y_up, x_down, y_down, ylabel, label_up, label_down, color_up, color_down):
+    plt.plot(x_up, y_up, 'k-', lw=1)
+    plt.scatter(x_up, y_up, color=color_up, edgecolors='k', label=label_up, s=20)
+    plt.plot(x_down, y_down, 'k--', lw=1)
+    plt.scatter(x_down, y_down, color=color_down, edgecolors='k', label=label_down, s=20, marker='s')
+    plt.xlabel(r'$\alpha$ (deg)')
     plt.ylabel(ylabel)
     plt.legend()
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
-plot_force_vs_aoa(liftForces, r'L $\left(\frac{N}{m}\right)$', "Measured Lift Force on Airfoil", "r")
-plot_force_vs_aoa(dragForces, r'D $\left(\frac{N}{m}\right)$', "Measured Drag Force on Airfoil", "b")
-plot_force_vs_aoa(moments, r'M$_{LE}$ $\left(\frac{Nm}{m}\right)$', "Measured Leading Edge Moment", "orange")
-plot_force_vs_aoa(quartermoments, r'M$_{c/4}$ $\left(\frac{Nm}{m}\right)$', "Measured Quarter-chord Moment", "orange")
-plot_force_vs_aoa(cps, r'c$_p$ [m]', "Measured Center of Pressure", "green")
+def plot_force_vs_aoa_single(x, y, ylabel, label, color):
+    plt.plot(x, y, 'k-', lw=1)
+    plt.scatter(x, y, color=color, edgecolors='k', label=label, s=20)
+    plt.xlabel(r'$\alpha$ (deg)')
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.show()
 
-# Drag comparison from wake rake
-plt.plot(aoasdeg, dragForces, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, dragForces, edgecolors='k', color="blue", label="Pressure Tap Drag", zorder=2, s=20)
-plt.plot(aoasdeg, dragForcesWR, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, dragForcesWR, edgecolors='k', marker="v", color="yellow", label="Wake Rake Drag", zorder=2, s=20)
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'D [N/m]')
-plt.legend()
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["Lift"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["Lift"],
+                        r'L [N/m]', "Upward Sweep", "Downward Sweep", "r", "darkred")
 
-# Lift coefficient
-plt.plot(aoasdeg, cl_values, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, cl_values, color="r", edgecolors='k', label=r"$C_l$", zorder=2, s=20)
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'$C_l$')
-plt.legend()
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["Drag"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["Drag"],
+                        r'D [N/m]', "Upward Sweep", "Downward Sweep", "b", "darkblue")
+
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["Moment_LE"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["Moment_LE"],
+                        r'M$_{LE}$ [Nm/m]', "Upward Sweep", "Downward Sweep", "orange", "darkorange")
+
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["Moment_c4"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["Moment_c4"],
+                        r'M$_{c/4}$ [Nm/m]', "Upward Sweep", "Downward Sweep", "green", "darkgreen")
+
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["CP"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["CP"],
+                        r'$c_p$ [m]', "Upward Sweep", "Downward Sweep", "purple", "darkviolet")
 
 # Drag coefficient comparison
-plt.plot(aoasdeg, cd_values_pressure, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, cd_values_pressure, color="blue", edgecolors='k', label=r"$C_d$ from pressure taps", zorder=2, s=20)
-plt.plot(aoasdeg, cd_values_wake, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, cd_values_wake, color="yellow", marker="v", edgecolors='k', label=r"$C_d$ from wake rake", zorder=2, s=20)
+plt.plot(df_avg_combined["AoA_deg"], df_avg_combined["CD_pressure"], 'k-')
+plt.scatter(df_avg_combined["AoA_deg"], df_avg_combined["CD_pressure"], color="blue", edgecolors='k', label="Pressure taps")
+plt.plot(df_avg_combined["AoA_deg"], df_avg_combined["CD_wake"], 'k-')
+plt.scatter(df_avg_combined["AoA_deg"], df_avg_combined["CD_wake"], color="yellow", marker="v", edgecolors='k', label="Wake rake")
 plt.xlabel(r'$\alpha$ [deg]')
 plt.ylabel(r'$C_d$')
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
+# Lift coefficient
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["CL"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["CL"],
+                        r'$C_l$', "Upward Sweep", "Downward Sweep", "red", "darkred")
 # Drag polar
-plt.plot(cd_values_pressure, cl_values, 'k-', lw=1, zorder=1)
-plt.scatter(cd_values_pressure, cl_values, color="blue", edgecolors='k', label="Pressure taps", zorder=2, s=20)
-plt.plot(cd_values_wake, cl_values, 'k-', lw=1, zorder=1)
-plt.scatter(cd_values_wake, cl_values, color="yellow", marker="v", edgecolors='k', label="Wake rake", zorder=2, s=20)
+plt.plot(df_upward_avg["CD_pressure"], df_upward_avg["CL"], 'k-')
+plt.scatter(df_upward_avg["CD_pressure"], df_upward_avg["CL"], color="blue", edgecolors='k', label="Upward - Pressure")
+plt.plot(df_downward_avg["CD_pressure"], df_downward_avg["CL"], 'k--')
+plt.scatter(df_downward_avg["CD_pressure"], df_downward_avg["CL"], color="cyan", edgecolors='k', label="Downward - Pressure", marker='s')
+plt.plot(df_upward_avg["CD_wake"], df_upward_avg["CL"], 'k-')
+plt.scatter(df_upward_avg["CD_wake"], df_upward_avg["CL"], color="yellow", marker="v", edgecolors='k', label="Upward - Wake")
+plt.plot(df_downward_avg["CD_wake"], df_downward_avg["CL"], 'k--')
+plt.scatter(df_downward_avg["CD_wake"], df_downward_avg["CL"], color="gold", marker="^", edgecolors='k', label="Downward - Wake", s=20)
 plt.xlabel(r'$C_d$')
 plt.ylabel(r'$C_l$')
 plt.legend()
@@ -241,34 +293,64 @@ plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 # Moment coefficients
-plt.plot(aoasdeg, cm_le_values, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, cm_le_values, color="orange", edgecolors='k', label=r"$C_{m,LE}$", zorder=2, s=20)
-plt.plot(aoasdeg, cm_quarter_values, 'k-', lw=1, zorder=1)
-plt.scatter(aoasdeg, cm_quarter_values, color="green", edgecolors='k', label=r"$C_{m,c/4}$", zorder=2, s=20)
-plt.xlabel(r'$\alpha$ [deg]')
-plt.ylabel(r'$C_m$')
-plt.legend()
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["CM_LE"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["CM_LE"],
+                        r'$C_{m,LE}$', "Upward Sweep", "Downward Sweep", "orange", "darkorange")
 
-aoas_array = np.array(aoasdeg)
-cl_array = np.array(cl_values)
+plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["CM_c4"], 
+                        df_downward_avg["AoA_deg"], df_downward_avg["CM_c4"],
+                        r'$C_{m,c/4}$', "Upward Sweep", "Downward Sweep", "green", "darkgreen")
 
-mask = (aoas_array >= -5) & (aoas_array <= 5)
-aoas_rad = np.deg2rad(aoas_array[mask])  # convert to radians
-cl_sel = cl_array[mask]
 
-# Linear fit (Cl = Cl_alpha * alpha + Cl0)
-coeffs = np.polyfit(aoas_rad, cl_sel, 1)  # 1 = linear
-cl_alpha = coeffs[0]  # slope in 1/rad
-cl0 = coeffs[1]       # intercept
+aoas_array_up = df_upward_avg["AoA_deg"].to_numpy()
+cl_array_up = df_upward_avg["CL"].to_numpy()
+
+mask = (aoas_array_up >= -5) & (aoas_array_up <= 5)
+aoas_rad_up = np.deg2rad(aoas_array_up[mask])
+cl_sel_up = cl_array_up[mask]
+
+coeffs = np.polyfit(aoas_rad_up, cl_sel_up, 1)
+cl_alpha = coeffs[0]
+cl0 = coeffs[1]
 
 print(f"C_l_alpha = {cl_alpha:.4f} per rad")
 print(f"C_l at 0 AoA = {cl0:.4f}")
 
-import json
-
-cl_alpha_2d = cl_alpha
-
 with open("cl_alpha_2d.json", "w") as f:
-    json.dump({"cl_alpha_2d": cl_alpha_2d}, f)
+    json.dump({"cl_alpha_2d": cl_alpha}, f)
+
+aero_data_2d = {
+    "upward_sweep": {
+        "AoA_deg": df_upward_avg["AoA_deg"].to_list(),
+        "CL_2D": df_upward_avg["CL"].to_list(),
+        "CD_2D_pressure": df_upward_avg["CD_pressure"].to_list(),
+        "CD_2D_wake": df_upward_avg["CD_wake"].to_list(),
+        "CM_LE": df_upward_avg["CM_LE"].to_list(),
+        "CM_c4": df_upward_avg["CM_c4"].to_list()
+    },
+    "downward_sweep": {
+        "AoA_deg": df_downward_avg["AoA_deg"].to_list(),
+        "CL_2D": df_downward_avg["CL"].to_list(),
+        "CD_2D_pressure": df_downward_avg["CD_pressure"].to_list(),
+        "CD_2D_wake": df_downward_avg["CD_wake"].to_list(),
+        "CM_LE": df_downward_avg["CM_LE"].to_list(),
+        "CM_c4": df_downward_avg["CM_c4"].to_list()
+    },
+    "combined": {
+        "AoA_deg": df_avg_combined["AoA_deg"].to_list(),
+        "CL_2D": df_avg_combined["CL"].to_list(),
+        "CD_2D_pressure": df_avg_combined["CD_pressure"].to_list(),
+        "CD_2D_wake": df_avg_combined["CD_wake"].to_list(),
+        "CM_LE": df_avg_combined["CM_LE"].to_list(),
+        "CM_c4": df_avg_combined["CM_c4"].to_list()
+    }
+}
+
+with open("aero_coefficients_2d.json", "w") as f:
+    json.dump(aero_data_2d, f, indent=4)
+
+print("\nData summary:")
+print(f"Upward sweep: {len(df_upward_avg)} unique AoA points")
+print(f"Downward sweep: {len(df_downward_avg)} unique AoA points")
+print(f"Combined: {len(df_avg_combined)} unique AoA points")
+

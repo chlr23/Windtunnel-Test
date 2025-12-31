@@ -95,42 +95,42 @@ df_avg = df.groupby("AoA_deg", as_index=False).mean()
 # Plots
 plt.plot(df_avg["AoA_deg"], df_avg["Lift"], 'k-', zorder=1, lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["Lift"], edgecolors='k', color="r", label="Measured Lift Force on Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r'L $\left(\text{N}\right)$')
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["Lift_per_span"], 'k-', lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["Lift_per_span"], edgecolors='k', color="r", label="Measured Lift Force per Span on Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r"$L'\;(\mathrm{N/m})$")
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["Drag"], 'k-', zorder=1, lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["Drag"], edgecolors='k', color="r", label="Measured Drag Force on Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r'D $\left(\text{N}\right)$')
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["Drag_per_span"], 'k-', lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["Drag_per_span"], edgecolors='k', color="r", label="Measured Drag Force per Span on Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r"$D'\;(\mathrm{N/m})$")
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["CL"], 'k-', lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["CL"], edgecolors='k', color="r", label="Calculated CL of Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r'$C_{L}$')
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["CD"], 'k-', lw=1)
 plt.scatter(df_avg["AoA_deg"], df_avg["CD"], edgecolors='k', color="r", label="Calculated CD of Wing", zorder=2, s=20)
-plt.xlabel(r'$\alpha\;\left(\text{deg}^{\circ}\right)$')
+plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r'$C_{D}$')
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
@@ -176,7 +176,7 @@ induced_fraction = CD_induced / cd_array
 # Plot induced drag fraction
 plt.plot(aoa_array, induced_fraction, 'k-', lw=1)
 plt.scatter(aoa_array, induced_fraction, edgecolors='k', color="orange", zorder=2, s=20)
-plt.xlabel(r'$\alpha$ [deg]')
+plt.xlabel(r'$\alpha$ (deg)')
 plt.ylabel(r'Fraction of Induced Drag $C_{D,i}/C_D$')
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
@@ -199,3 +199,46 @@ print(f"At AoA = 0°:")
 print(f"CL = {CL_0:.4f}, CD = {CD_0:.4f}")
 print(f"Induced Drag CDi = {CDi_0:.4f}")
 print(f"Fraction of total drag due to lift = {induced_fraction_0:.2%}")
+
+with open("aero_coefficients_2d.json") as f:
+    data_2d = json.load(f)
+
+aoa_2d_upward = data_2d["upward_sweep"]["AoA_deg"]
+cl_2d_upward = data_2d["upward_sweep"]["CL_2D"]
+cd_2d_upward = data_2d["upward_sweep"]["CD_2D_pressure"]
+
+print(f"\n2D Upward Sweep Statistics:")
+print(f"Number of points: {len(aoa_2d_upward)}")
+print(f"AoA range: {min(aoa_2d_upward):.1f}° to {max(aoa_2d_upward):.1f}°")
+
+plt.plot(df_avg["AoA_deg"], df_avg["CL"], 'k-', lw=1.5)
+plt.scatter(df_avg["AoA_deg"], df_avg["CL"], color="blue", edgecolors='k', 
+           label=r"$C_{L}$ (3D)", zorder=2, s=40)
+
+plt.plot(aoa_2d_upward, cl_2d_upward, 'k-', lw=1.5)
+plt.scatter(aoa_2d_upward, cl_2d_upward, color="red", marker="^", edgecolors='k', 
+           label=r"$C_{l}$ (2D)", zorder=2, s=40)
+
+plt.xlabel(r'$\alpha\;(\text{deg})$')
+plt.ylabel(r'$C_L\;\text{or}\;C_l$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.tight_layout()
+plt.show()
+
+# Plot CD comparison (3D vs 2D upward sweep)
+
+plt.plot(df_avg["AoA_deg"], df_avg["CD"], 'k-', lw=1.5)
+plt.scatter(df_avg["AoA_deg"], df_avg["CD"], color="blue", edgecolors='k', 
+           label=r"$C_{D}$ (3D)", zorder=2, s=40)
+
+plt.plot(aoa_2d_upward, cd_2d_upward, 'k-', lw=1.5)
+plt.scatter(aoa_2d_upward, cd_2d_upward, color="red", marker="^", edgecolors='k', 
+           label=r"$C_{d}$ (2D)", zorder=2, s=40)
+
+plt.xlabel(r'$\alpha\;(\text{deg})$')
+plt.ylabel(r'$C_D\;\text{or}\;C_d$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.tight_layout()
+plt.show()
