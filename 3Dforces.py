@@ -61,7 +61,7 @@ for datarun in dataruns:
     DragForcePerSpan = DragForce / b
     DragForcesPerSpan.append(DragForcePerSpan)
 
-    DynamicPressure = 0.5 * datarun[10] * 20.23**2
+    DynamicPressure = 0.211804 + 1.928442 * datarun[3] + 1.879374 * 10 ** (-4) * datarun[3] ** 2
     DynamicPressures.append(DynamicPressure)
 
     AoA = datarun[2] * np.pi / 180

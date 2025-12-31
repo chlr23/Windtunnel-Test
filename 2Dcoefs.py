@@ -129,6 +129,8 @@ for datarun in dataruns:
     pFront = datarun[33:44][::-1] + datarun[8:20]
     pBack = datarun[44:57] + datarun[20:33][::-1]
 
+    deltaPb = datarun[3]
+
     # AoA
     aoa = datarun[2] * np.pi / 180
     aoadeg = datarun[2]
@@ -153,7 +155,7 @@ for datarun in dataruns:
 
     # Dynamic pressure
     rho = datarun[7]
-    q_inf = 0.5 * rho * uFS**2
+    q_inf = 0.211804 + 1.928442 * deltaPb + 1.879374 * 10 ** (-4) * deltaPb ** 2
 
     # Coefficients from pressure taps
     cl_values.append(force_to_cl(liftForce, q_inf, c))
