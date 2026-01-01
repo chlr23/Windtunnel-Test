@@ -1,0 +1,63 @@
+import numpy as np
+from airfoilaerodynamicforces import dragForces, liftForces, aoasdeg
+import matplotlib.pyplot as plt
+
+# Convert to arrays
+drag = np.array(dragForces)
+lift = np.array(liftForces)
+aoa = np.array(aoasdeg)
+
+q_inf = 234.7484151789682 # Pa
+
+# Tunnel and model properties - will need to tweak L!
+c = 160    # mm
+h = 900    # mm
+L = 0.18   # dimensionless gemoetric property
+
+# Correction factors
+c_d = drag / q_inf
+sigma = (np.pi**2 / 48) * (c / h)**2
+tau = c / (4 * h)
+
+epsilon_sb = tau * c_d
+epsilon_wb = tau * (c / h) / 2
+epsilon = epsilon_sb + epsilon_wb
+
+q_corr = 1 + 2 * epsilon
+
+# Correction functions
+def correct_lift(lift, sigma, q_corr, epsilon):
+    return lift * (1 - sigma - 2*epsilon) * q_corr
+
+def correct_drag(drag, sigma, L):
+    return (1 + L * sigma) * drag
+
+correctedLift = correct_lift(lift, sigma, q_corr, epsilon)
+correctedDrag = correct_drag(drag, sigma, L)
+
+# Plot lift
+plt.scatter(aoa, correctedLift,facecolors='blue',
+    edgecolors='k',label="Corrected Lift Force on Airfoil",s=20,zorder=2)
+
+plt.scatter(aoa, lift, facecolors='red',edgecolors='k',
+    label="Measured Lift Force on Airfoil",s=20,zorder=4)
+
+plt.xlabel('α (°)')
+plt.ylabel(r'$L\;\left(\mathrm{N/m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
+
+# Plot drag
+
+plt.scatter(aoa, correctedDrag,facecolors='blue',edgecolors='k',
+    label="Corrected Drag Force on Airfoil",s=10,zorder=2)
+
+plt.scatter(aoa, drag, facecolors='red', edgecolors='k',
+    label="Measured Drag Force on Airfoil", s=10, zorder=4)
+
+plt.xlabel('α (°)')
+plt.ylabel(r'$D\;\left(\mathrm{N/m}\right)$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
