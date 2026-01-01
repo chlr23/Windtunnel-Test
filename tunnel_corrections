@@ -32,11 +32,15 @@ def correct_lift(lift, sigma, q_corr, epsilon):
 def correct_drag(drag, sigma, L):
     return (1 + L * sigma) * drag
 
+def correct_aoa(aoa,sigma):
+    return aoa*(1+sigma)
+
 correctedLift = correct_lift(lift, sigma, q_corr, epsilon)
 correctedDrag = correct_drag(drag, sigma, L)
+corrected_aoa = correct_aoa(aoa, sigma)
 
 # Plot lift
-plt.scatter(aoa, correctedLift,facecolors='blue',
+plt.scatter(corrected_aoa, correctedLift,facecolors='blue',
     edgecolors='k',label="Corrected Lift Force on Airfoil",s=20,zorder=2)
 
 plt.scatter(aoa, lift, facecolors='red',edgecolors='k',
@@ -50,7 +54,7 @@ plt.show()
 
 # Plot drag
 
-plt.scatter(aoa, correctedDrag,facecolors='blue',edgecolors='k',
+plt.scatter(corrected_aoa, correctedDrag,facecolors='blue',edgecolors='k',
     label="Corrected Drag Force on Airfoil",s=10,zorder=2)
 
 plt.scatter(aoa, drag, facecolors='red', edgecolors='k',
