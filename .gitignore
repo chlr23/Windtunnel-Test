@@ -13,7 +13,7 @@ venv/
 
 # Large data files
 *.xlsx
-*.txt
+# *.txt
 *.csv
 *.pdf
 *.zip
