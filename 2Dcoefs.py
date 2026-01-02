@@ -242,6 +242,8 @@ def plot_force_vs_aoa_single(x, y, ylabel, label, color):
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
+plot_force_vs_aoa_single(df_upward_avg["AoA_deg"], df_upward_avg["CD_pressure"], r"$C_d$", r"Cd aoa", "r")
+
 plot_force_vs_aoa_split(df_upward_avg["AoA_deg"], df_upward_avg["Lift"], 
                         df_downward_avg["AoA_deg"], df_downward_avg["Lift"],
                         r'L [N/m]', "Upward Sweep", "Downward Sweep", "r", "darkred")

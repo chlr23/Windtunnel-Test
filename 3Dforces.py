@@ -166,50 +166,38 @@ print(f"Aspect Ratio: {A:.4f}")
 print(f"Tau = {tau:.4f}")
 
 
-# Compute induced drag coefficient for each AoA
-CD_induced = cl_array**2 / (np.pi * A * (1 + tau))
 
-# Fraction of induced drag relative to total CD
-cd_array = np.array(df_avg["CD"])
-induced_fraction = CD_induced / cd_array
-
-# Plot induced drag fraction
-plt.plot(aoa_array, induced_fraction, 'k-', lw=1)
-plt.scatter(aoa_array, induced_fraction, edgecolors='k', color="orange", zorder=2, s=20)
-plt.xlabel(r'$\alpha$ (deg)')
-plt.ylabel(r'Fraction of Induced Drag $C_{D,i}/C_D$')
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
-
-
-# Find the index where AoA = 0 deg
-idx_0 = np.argmin(np.abs(aoa_array - 0))
-
-# CL and CD at AoA = 0
-CL_0 = cl_array[idx_0]
-CD_0 = cd_array[idx_0]
-
-# Induced drag coefficient at AoA = 0
-CDi_0 = CL_0**2 / (np.pi * A * (1 + tau))
-
-# Fraction of total drag that is induced
-induced_fraction_0 = CDi_0 / CD_0
-
-print(f"At AoA = 0°:")
-print(f"CL = {CL_0:.4f}, CD = {CD_0:.4f}")
-print(f"Induced Drag CDi = {CDi_0:.4f}")
-print(f"Fraction of total drag due to lift = {induced_fraction_0:.2%}")
 
 with open("aero_coefficients_2d.json") as f:
     data_2d = json.load(f)
 
-aoa_2d_upward = data_2d["upward_sweep"]["AoA_deg"]
-cl_2d_upward = data_2d["upward_sweep"]["CL_2D"]
-cd_2d_upward = data_2d["upward_sweep"]["CD_2D_pressure"]
+aoa_2d_upward = pd.Series(data_2d["upward_sweep"]["AoA_deg"])
+cl_2d_upward  = pd.Series(data_2d["upward_sweep"]["CL_2D"])
+cd_2d_upward  = pd.Series(data_2d["upward_sweep"]["CD_2D_pressure"])
 
-print(f"\n2D Upward Sweep Statistics:")
-print(f"Number of points: {len(aoa_2d_upward)}")
-print(f"AoA range: {min(aoa_2d_upward):.1f}° to {max(aoa_2d_upward):.1f}°")
+
+CDi_from_tau = df_avg["CL"]**2 / (np.pi * A) * (1 + tau)
+
+
+df_overlap = df_avg[df_avg["AoA_deg"] <= max(aoa_2d_upward)].copy()
+CDi_from_graph = df_overlap["CD"] - cd_2d_upward
+
+#print(f'Length of 2d= {len(cl_2d_upward)} \nLength of 3d= {len(CDi_from_graph)}')
+
+plt.plot(aoa_2d_upward, CDi_from_graph, 'k-', lw=1.5)
+plt.scatter(aoa_2d_upward, CDi_from_graph, color="blue", edgecolors='k', 
+           label=r"$C_{D_{i}}$ (From Finite Wing)", zorder=2, s=40)
+
+plt.plot(df_avg["AoA_deg"], CDi_from_tau, 'k-', lw=1.5)
+plt.scatter(df_avg["AoA_deg"], CDi_from_tau, color="red", marker="^", edgecolors='k', 
+           label=r"$C_{D_{i}}$ (From Tau Estimation)", zorder=2, s=40)
+
+plt.xlabel(r'$\alpha\;(\text{deg})$')
+plt.ylabel(r'$C_{D_{i}}$')
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.tight_layout()
+plt.show()
 
 plt.plot(df_avg["AoA_deg"], df_avg["CL"], 'k-', lw=1.5)
 plt.scatter(df_avg["AoA_deg"], df_avg["CL"], color="blue", edgecolors='k', 
@@ -242,3 +230,40 @@ plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.tight_layout()
 plt.show()
+
+
+#Data stuff 2D
+Cl_max_idx = cl_2d_upward.idxmax()
+Cl_max = cl_2d_upward.max()
+AoA_stall_2d = aoa_2d_upward.loc[Cl_max_idx]
+Cd_min = cd_2d_upward.min()
+Cd_min_idx = cd_2d_upward.idxmin()
+AoA_minD_2d = aoa_2d_upward.loc[Cd_min_idx]
+Cl0_2d = cl_2d_upward.loc[aoa_2d_upward == 0].values[0]
+
+print("\n2D stuff:\n")
+print(f"Cl_0 = {Cl0_2d:.4f}")
+print(f"Cl_max = {Cl_max:.4f}")
+print(f"Stall Angle (2D) = {AoA_stall_2d:.1f}")
+print(f"Cd_min = {Cd_min:.4f}")
+print(f"Minimal Drag Angle (2D) = {AoA_minD_2d:.4f}")
+
+# Data BS 3D
+CL_max_idx = df_avg["CL"].idxmax()
+CL_max = df_avg["CL"].max()
+AoA_stall = df_avg.loc[CL_max_idx, "AoA_deg"]
+CD_min = df_avg["CD"].min()
+CD_min_idx = df_avg["CD"].idxmin()
+AoA_minD = df_avg.loc[CD_min_idx, "AoA_deg"]
+
+print("\n3D stuff:\n")
+print(f"CL_0 = {CL0:.4f}")
+print(f"CL_max = {CL_max:.4f}")
+print(f"Stall Angle = {AoA_stall:.1f}")
+print(f"CD_min = {CD_min:.4f}")
+print(f"Minimal Drag Angle = {AoA_minD:.4f}")
+
+print("\nComparison stuff:\n")
+print(f"Change in CL_0 (2D-3D) = {Cl0_2d-CL0:.4f}")
+print(f"Change Stall angle (2D-3D) = {AoA_stall_2d - AoA_stall:.1f}")
+print(f"Change in CL_max (2D - 3D) = {Cl_max-CL_max:.4f}")
