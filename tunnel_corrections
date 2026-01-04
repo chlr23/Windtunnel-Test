@@ -1,50 +1,71 @@
 import numpy as np
-from airfoilaerodynamicforces import dragForces, liftForces, aoasdeg
+from airfoilaerodynamicforces import dragForces, liftForces, aoasdeg, quartermoments
 import matplotlib.pyplot as plt
 
 # Convert to arrays
 drag = np.array(dragForces)
 lift = np.array(liftForces)
+quartermoment = np.array(quartermoments)
 aoa = np.array(aoasdeg)
 
 q_inf = 234.7484151789682 # Pa
 
-# Tunnel and model properties - will need to tweak L!
-c = 160    # mm
-h = 900    # mm
-L = 0.18   # dimensionless gemoetric property
+# Tunnel and model properties
+c = 0.160    # m
+h = 0.900    # m
+w = 0.600 #m
+t_c = 0.104  # thickness to chord ratio
+span = 0.4  # m model span
+L = 0.1838317334630483   # dimensionless gemoetric property
+
+tunnel_area = h*w
+model_vol = 0.7 * t_c * span * c**2
+
 
 # Correction factors
 c_d = drag / q_inf
+c_l = lift / q_inf
+c_m025 = quartermoment / (q_inf * (c**2))
 sigma = (np.pi**2 / 48) * (c / h)**2
-tau = c / (4 * h)
 
-epsilon_sb = tau * c_d
-epsilon_wb = tau * (c / h) / 2
+epsilon_sb = 0.74 * model_vol / (tunnel_area**(3/2))
+print('sb',epsilon_sb)
+epsilon_wb = c_d * (c / h) / 2
+print('wb',epsilon_wb)
 epsilon = epsilon_sb + epsilon_wb
 
 q_corr = 1 + 2 * epsilon
+#print('q correction:', q_corr)
 
 # Correction functions
 def correct_lift(lift, sigma, q_corr, epsilon):
+    print('c_l correction due to streamline curvature:', sigma)
+    print('c_l correction due to wake blockage',  2*epsilon)
+    print('c_l correction total', (1 - sigma - 2*epsilon))
+
     return lift * (1 - sigma - 2*epsilon) * q_corr
 
-def correct_drag(drag, sigma, L):
-    return (1 + L * sigma) * drag
+def correct_drag(drag, sigma, L, q_corr):
+    print((1 - L * sigma))
+    return (1 - L * sigma) * drag * q_corr
 
-def correct_aoa(aoa,sigma):
-    return aoa*(1+sigma)
+def correct_aoa(aoa,sigma,cl,cm):
+    #print('aoa increase',(cl+4*cm)*sigma*57.3/(2*np.pi)/aoa * 100)
+    return aoa + (cl+4*cm)*sigma*57.3/(2*np.pi)
 
 correctedLift = correct_lift(lift, sigma, q_corr, epsilon)
-correctedDrag = correct_drag(drag, sigma, L)
-corrected_aoa = correct_aoa(aoa, sigma)
+correctedDrag = correct_drag(drag, sigma, L, q_corr)
+corrected_aoa = correct_aoa(aoa, sigma, c_l, c_m025)
+
+print('lift correction total', correctedLift/lift)
+print('drag correction total', correctedDrag/drag)
 
 # Plot lift
 plt.scatter(corrected_aoa, correctedLift,facecolors='blue',
-    edgecolors='k',label="Corrected Lift Force on Airfoil",s=20,zorder=2)
+    edgecolors='k',label="Corrected Lift Force on Airfoil",s=10,zorder=2)
 
 plt.scatter(aoa, lift, facecolors='red',edgecolors='k',
-    label="Measured Lift Force on Airfoil",s=20,zorder=4)
+    label="Measured Lift Force on Airfoil",s=10,zorder=4)
 
 plt.xlabel('α (°)')
 plt.ylabel(r'$L\;\left(\mathrm{N/m}\right)$')
