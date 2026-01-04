@@ -151,4 +151,4 @@ def load_3D_experiment():
     df_overlap = df_avg[df_avg["AoA_deg"] <= max(aoa_2d_upward)].copy()
     CDi_from_graph = df_overlap["CD"] - cd_2d_upward
 
-    return (df_avg["AoA_deg"], df_avg["CL"]), (aoa_2d_upward, CDi_from_graph), (df_avg["AoA_deg"], CDi_from_tau)
+    return (df_avg["AoA_deg"], df_avg["CL"]), (aoa_2d_upward, CDi_from_graph), (df_avg["AoA_deg"], CDi_from_tau), np.array(df_avg['q']), np.array(df_overlap['q'])
