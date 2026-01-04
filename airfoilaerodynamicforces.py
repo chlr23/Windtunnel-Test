@@ -157,7 +157,7 @@ for datarun in dataruns:
     liftForces.append(liftForce)
     dragForces.append(dragForce)
     quartermoments.append(moment + liftForce * 0.25 * 0.16)
-    quarterMomentCoefs.append((moment + liftForce * 0.25 * 0.16)/q_inf*chord*chord)
+    quarterMomentCoefs.append((moment + liftForce * 0.25 * 0.16)/(q_inf*chord*chord))
 
     cp = calcCP(liftForce, moment)
     cps.append(cp)
@@ -201,7 +201,9 @@ listoflists = [aoasdeg, liftForces, dragForces, dragForcesWR, moments, quartermo
 for list in listoflists:
     averageVal(20, list)
 
-plt.plot(aoasdeg, liftForces, 'k-', zorder=1, lw=1)
+print((liftCoefs[29]-liftCoefs[0])/(aoas[29]-aoas[0]))
+
+"""plt.plot(aoasdeg, liftForces, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], liftForces[:43], edgecolors='k', color="r", label="Measured Sectional Lift", zorder=2, s=20)
 plt.scatter(aoasdeg[43:], liftForces[43:], edgecolors='k', marker = "s", color="r", label=r"Measured Sectional Lift (Decreasing $\alpha$)", zorder=2, s=20)
 plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
@@ -219,7 +221,7 @@ plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
 
-"""plt.plot(aoasdeg, dragForces, 'k-', zorder=1, lw=1)
+plt.plot(aoasdeg, dragForces, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], dragForces[:43], edgecolors='k', color="blue", label="Measured Drag Force on Airfoil", zorder=2, s=20)
 plt.scatter(aoasdeg[43:], dragForces[43:], edgecolors='k', marker="s", color="blue", label=r"Measured Drag Force on Airfoil (Decreasing $\alpha$)", zorder=2, s=20)
 plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
@@ -232,10 +234,10 @@ plt.plot(aoasdeg, dragCoefs, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], dragCoefs[:43], edgecolors='k', color="blue", label="Measured Airfoil Drag Coefficient", zorder=2, s=20)
 plt.scatter(aoasdeg[43:], dragCoefs[43:], edgecolors='k', marker="s", color="blue", label=r"Measured Airfoil Drag Coefficient (Decreasing $\alpha$)", zorder=2, s=20)
 plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
-plt.ylabel(r"\text{c}_D")
+plt.ylabel(r"$\text{c}_D$")
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()"""
+plt.show()
 
 plt.plot(aoasdeg, moments, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], moments[:43], edgecolors='k', color="orange", label="Measured Sectional LE Moment", zorder=2, s=20)
@@ -253,7 +255,7 @@ plt.xlabel(r'$\alpha\;\left(\text{deg}\right)$')
 plt.ylabel(r"$\text{c}_{m,LE}$")
 plt.legend(fontsize=8)
 plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
+plt.show()"""
 
 plt.plot(aoasdeg, quartermoments, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], quartermoments[:43], edgecolors='k', color="orange", label="Measured Sectional c/4 Moment", zorder=2, s=20)
@@ -280,7 +282,16 @@ plt.xlabel(r"D' $\left(\frac{N}{m}\right)$")
 plt.ylabel(r"L' $\left(\frac{N}{m}\right)$")
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()"""
+plt.show()
+
+plt.plot(dragCoefs, liftCoefs, 'k-', zorder=1, lw=1)
+plt.scatter(dragCoefs[:43], liftCoefs[:43], edgecolors='k', color="blue", label="Measured Airfoil Drag Polar", zorder=2, s=20)
+plt.scatter(dragCoefs[43:], liftCoefs[43:], edgecolors='k',marker="s", color="blue", label=r"Measured Airfoil Drag Polar (Decreasing $\alpha$)", zorder=2, s=20)
+plt.xlabel(r"$\text{c}_D$")
+plt.ylabel(r"$\text{c}_L$")
+plt.legend()
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.show()
 
 plt.plot(aoasdeg, cps, 'k-', zorder=1, lw=1)
 plt.scatter(aoasdeg[:43], cps[:43], edgecolors='k', color="green", label="Measured cp Location", zorder=2, s=20)
@@ -337,4 +348,4 @@ plt.xlabel(r"$\text{c}_D$")
 plt.ylabel(r"$\text{c}_L$")
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
+plt.show()"""
