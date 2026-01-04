@@ -56,11 +56,27 @@ u_20 = np.array([wake_profile(rho[20], stat_location, p_st[20], tot_location, pr
 #Plotting
 
 #plt.plot(y, u_0/v_inf, 'k-', zorder=1, lw=1)
-plt.plot(y, u_0/v_inf, 'k-', color="blue", label=rf"Wake profile at $\alpha = {alpha[0]:.1f}^\circ$", zorder=1, lw =1)
-plt.plot(y, u_10/v_inf,'k', color="green", label=rf"Wake profile at $\alpha = {alpha[10]:.1f}^\circ$", zorder=2, lw = 1)
-plt.plot(y, u_20/v_inf,'k', color="red", label=rf"Wake profile at $\alpha = {alpha[20]:.1f}^\circ$", zorder=3, lw = 1)
-plt.xlabel('Location [mm]')
-plt.ylabel(r'$\frac{U_{\mathrm{wake}}}{V_{\infty}}$')
+# Interpolate wake profiles at total-pressure probe locations
+u0_mark = np.interp(tot_location, y, u_0) / v_inf
+u10_mark = np.interp(tot_location, y, u_10) / v_inf
+u20_mark = np.interp(tot_location, y, u_20) / v_inf
+
+# Plot continuous curves
+plt.plot(y, u_0/v_inf, color="blue", lw=1)
+plt.plot(y, u_10/v_inf, color="green", lw=1)
+plt.plot(y, u_20/v_inf, color="red", lw=1)
+
+# Overlay markers at tot_location
+plt.scatter(tot_location, u0_mark,
+            marker='s', s=20, facecolors='none', edgecolors='blue', label=rf"Wake profile at $\alpha = {alpha[0]:.1f}^\circ$", zorder=5)
+
+plt.scatter(tot_location, u10_mark,
+            marker='o', s=20, facecolors='none', edgecolors='green', label=rf"Wake profile at $\alpha = {alpha[10]:.1f}^\circ$",
+            zorder=6)
+
+plt.scatter(tot_location, u20_mark,
+            marker='^', s=20, facecolors='none', edgecolors='red', label=rf"Wake profile at $\alpha = {alpha[20]:.1f}^\circ$",
+            zorder=7)
+
 plt.legend()
-plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()

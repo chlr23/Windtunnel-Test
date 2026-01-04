@@ -56,33 +56,22 @@ def correct_aoa(aoa,sigma,cl,cm):
 correctedLift = correct_lift(lift, sigma, q_corr, epsilon)
 correctedDrag = correct_drag(drag, sigma, L, q_corr)
 corrected_aoa = correct_aoa(aoa, sigma, c_l, c_m025)
+print('corr aoa', corrected_aoa)
 
-print('lift correction total', correctedLift/lift)
-print('drag correction total', correctedDrag/drag)
+#print('lift correction total', correctedLift/lift)
+#print('drag correction total', correctedDrag/drag)
 
-# Plot lift
-plt.scatter(corrected_aoa, correctedLift,facecolors='blue',
-    edgecolors='k',label="Corrected Lift Force on Airfoil",s=10,zorder=2)
+# Plot lift coeff
+c_l_corrected = correctedLift / q_inf
 
-plt.scatter(aoa, lift, facecolors='red',edgecolors='k',
-    label="Measured Lift Force on Airfoil",s=10,zorder=4)
+plt.plot(aoa, lift/q_inf, 'k-', zorder=1, lw=1)
+plt.scatter(aoa, lift/q_inf, edgecolors='k', marker = 's', color="r", label="Measured Airfoil Lift Coefficient", zorder=2, s=20)
 
-plt.xlabel('α (°)')
-plt.ylabel(r'$L\;\left(\mathrm{N/m}\right)$')
-plt.legend()
-plt.grid(True, linestyle=':', alpha=0.6)
-plt.show()
-
-# Plot drag
-
-plt.scatter(corrected_aoa, correctedDrag,facecolors='blue',edgecolors='k',
-    label="Corrected Drag Force on Airfoil",s=10,zorder=2)
-
-plt.scatter(aoa, drag, facecolors='red', edgecolors='k',
-    label="Measured Drag Force on Airfoil", s=10, zorder=4)
+plt.plot(corrected_aoa, c_l_corrected, 'k-', zorder=3, lw=1)
+plt.scatter(corrected_aoa, c_l_corrected, edgecolors='k', color="b", label="Corrected Airfoil Lift Coefficient", zorder=4, s=20)
 
 plt.xlabel('α (°)')
-plt.ylabel(r'$D\;\left(\mathrm{N/m}\right)$')
+plt.ylabel('c_L')
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.show()
