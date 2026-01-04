@@ -240,8 +240,19 @@ Cd_min = cd_2d_upward.min()
 Cd_min_idx = cd_2d_upward.idxmin()
 AoA_minD_2d = aoa_2d_upward.loc[Cd_min_idx]
 Cl0_2d = cl_2d_upward.loc[aoa_2d_upward == 0].values[0]
+aoa2d = aoa_2d_upward
+cl2d = cl_2d_upward
+mask_2d = (aoa2d >= -5) & (aoa2d <= 5)
+aoa2d_rad = np.deg2rad(aoa2d[mask_2d])
+cl2d_sel = cl2d[mask_2d]
+coeffs_2d = np.polyfit(aoa2d_rad, cl2d_sel, 1)
+Cl_alpha_2d = coeffs_2d[0]
+Cl0_2d_fit = coeffs_2d[1]
+alpha_0L_2d_rad = -Cl0_2d_fit / Cl_alpha_2d
+alpha_0L_2d_deg = np.rad2deg(alpha_0L_2d_rad)
 
 print("\n2D stuff:\n")
+print(f"Zero lift angle (2D) = {alpha_0L_2d_deg:.3f}")
 print(f"Cl_0 = {Cl0_2d:.4f}")
 print(f"Cl_max = {Cl_max:.4f}")
 print(f"Stall Angle (2D) = {AoA_stall_2d:.1f}")
@@ -255,8 +266,11 @@ AoA_stall = df_avg.loc[CL_max_idx, "AoA_deg"]
 CD_min = df_avg["CD"].min()
 CD_min_idx = df_avg["CD"].idxmin()
 AoA_minD = df_avg.loc[CD_min_idx, "AoA_deg"]
+alpha_0L_rad = -CL0 / CL_alpha
+alpha_0L_deg = np.rad2deg(alpha_0L_rad)
 
 print("\n3D stuff:\n")
+print(f"Zero Lift angle = {alpha_0L_deg:.3f}")
 print(f"CL_0 = {CL0:.4f}")
 print(f"CL_max = {CL_max:.4f}")
 print(f"Stall Angle = {AoA_stall:.1f}")
@@ -264,6 +278,7 @@ print(f"CD_min = {CD_min:.4f}")
 print(f"Minimal Drag Angle = {AoA_minD:.4f}")
 
 print("\nComparison stuff:\n")
+print(f"Change in 0 L angle (2D-3D) = {alpha_0L_2d_deg - alpha_0L_deg:.3f}")
 print(f"Change in CL_0 (2D-3D) = {Cl0_2d-CL0:.4f}")
 print(f"Change Stall angle (2D-3D) = {AoA_stall_2d - AoA_stall:.1f}")
 print(f"Change in CL_max (2D - 3D) = {Cl_max-CL_max:.4f}")
