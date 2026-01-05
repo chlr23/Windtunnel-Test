@@ -186,11 +186,11 @@ CDi_from_graph = df_overlap["CD"] - cd_2d_upward
 
 plt.plot(aoa_2d_upward, CDi_from_graph, 'k-', lw=1.5)
 plt.scatter(aoa_2d_upward, CDi_from_graph, color="blue", edgecolors='k', 
-           label=r"$C_{D_{i}}$ (From Finite Wing)", zorder=2, s=40)
+           label=r"$C_{D_{i}}$ (Estimation from Drag Difference)", zorder=2, s=40)
 
 plt.plot(df_avg["AoA_deg"], CDi_from_tau, 'k-', lw=1.5)
 plt.scatter(df_avg["AoA_deg"], CDi_from_tau, color="red", marker="^", edgecolors='k', 
-           label=r"$C_{D_{i}}$ (From Tau Estimation)", zorder=2, s=40)
+           label=r"$C_{D_{i}}$ (Estimation from $\tau$)", zorder=2, s=40)
 
 plt.xlabel(r'$\alpha\;(\text{deg})$')
 plt.ylabel(r'$C_{D_{i}}$')
