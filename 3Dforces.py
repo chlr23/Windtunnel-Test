@@ -198,6 +198,8 @@ plt.legend()
 plt.grid(True, linestyle=':', alpha=0.6)
 plt.tight_layout()
 plt.show()
+print("")
+
 
 plt.plot(df_avg["AoA_deg"], df_avg["CL"], 'k-', lw=1.5)
 plt.scatter(df_avg["AoA_deg"], df_avg["CL"], color="blue", edgecolors='k', 
